@@ -1,4 +1,4 @@
-import {SubRequest} from './sub-request';
+import {SubRequest} from './sub/sub-request';
 
 export interface SampleRequest {
     param1: string;

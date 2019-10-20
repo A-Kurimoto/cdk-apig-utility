@@ -8,12 +8,32 @@ export class CdkApigUtility {
 
     /**
      *
+     * @param dir Directory of class or interface entity sources. This directory must include only entities.¬
+     */
+    convertFromDir(dir: string): ModelOptions[] {
+        const srcPaths: string[] = [];
+        const setSrcPaths = (dir: string) => {
+            fs.readdirSync(dir).forEach(path => {
+                const fullPath = `${dir}/${path}`;
+                if (fs.statSync(fullPath).isDirectory()) {
+                    setSrcPaths(fullPath);
+                } else {
+                    srcPaths.push(fullPath);
+                }
+            });
+        };
+        setSrcPaths(dir);
+        return this.convertFromFiles(srcPaths);
+    }
+
+    /**
+     *
      * @param srcPaths class or interface entity source's paths. If entity has some dependency, you must specify its path simultaneously.
      * @return ModelOptions[]
      * see https://docs.aws.amazon.com/cdk/api/latest/docs/aws-apigateway-readme.html#working-with-models
      * and https://docs.aws.amazon.com/cdk/api/latest/docs/@aws-cdk_aws-apigateway.ModelOptions.html
      */
-    convert(srcPaths: string[]): ModelOptions[] {
+    convertFromFiles(srcPaths: string[]): ModelOptions[] {
         const results = [];
 
         for (const srcPath of srcPaths) {
