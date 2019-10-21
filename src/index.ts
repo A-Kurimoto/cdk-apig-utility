@@ -1,7 +1,16 @@
 import {JsonSchema, JsonSchemaType, JsonSchemaVersion, ModelOptions} from '@aws-cdk/aws-apigateway';
 import * as fs from 'fs';
 import * as ts from 'typescript';
-import {ClassDeclaration, Identifier, InterfaceDeclaration, Node, ScriptTarget, SyntaxKind} from 'typescript';
+import {
+    ClassDeclaration,
+    Identifier,
+    InterfaceDeclaration,
+    Node,
+    ScriptTarget,
+    SyntaxKind,
+    ScriptKind,
+    ParameterDeclaration
+} from 'typescript';
 
 
 export class CdkApigUtility {
@@ -18,7 +27,7 @@ export class CdkApigUtility {
                 if (fs.statSync(fullPath).isDirectory()) {
                     setSrcPaths(fullPath);
                 } else {
-                    if(fullPath.endsWith('.ts')){
+                    if (fullPath.endsWith('.ts')) {
                         srcPaths.push(fullPath);
                     }
                 }
@@ -39,7 +48,7 @@ export class CdkApigUtility {
         const results = [];
 
         for (const srcPath of srcPaths) {
-            const sourceFile = ts.createSourceFile(srcPath, fs.readFileSync(srcPath).toString(), ScriptTarget.ES5, true);
+            const sourceFile = ts.createSourceFile(srcPath, fs.readFileSync(srcPath).toString(), ScriptTarget.ES5, true, ScriptKind.TS);
             const properties: { [name: string]: JsonSchema; } = {};
             let modelName = '';
 
@@ -131,12 +140,24 @@ export class CdkApigUtility {
             }
         }
         if (propertyName && typeName) {
-            CdkApigUtility._setProperties(properties, propertyName, typeName, arrayChild, typeReference);
+            const descrition = CdkApigUtility.getDescription(memberNode);
+            CdkApigUtility._setProperties(properties, propertyName, descrition, typeName, arrayChild, typeReference);
         }
-
     }
 
-    private static _setProperties(properties: { [name: string]: JsonSchema; }, propertyName: string,
+    private static getDescription(node: Node): string {
+        const jsDocTags = ts.getJSDocTags(node);
+        if (jsDocTags) {
+            for (const tag of jsDocTags) {
+                if (tag.tagName.escapedText === 'desc' || tag.tagName.escapedText === 'description') {
+                    return tag.comment ? tag.comment : 'No description.';
+                }
+            }
+        }
+        return 'No description.';
+    }
+
+    private static _setProperties(properties: { [name: string]: JsonSchema; }, propertyName: string, descrition: string,
                                   typeName: JsonSchemaType, arrayChild: Node | null, typeReference: string | null) {
         if (arrayChild) {
             const arrayType = CdkApigUtility.getJsonSchemaType(arrayChild);
@@ -145,20 +166,22 @@ export class CdkApigUtility {
                     arrayType !== 'array' && arrayType !== 'object') {
                     properties[propertyName] = {
                         type: typeName,
+                        description: descrition,
                         items: {type: JsonSchemaType.OBJECT, ref: arrayType}
                     };
                 } else {
                     properties[propertyName] = {
                         type: typeName,
+                        description: descrition,
                         items: {type: arrayType as JsonSchemaType}
                     };
                 }
             }
         } else if (typeReference) {
-            properties[propertyName] = {type: JsonSchemaType.OBJECT, ref: typeReference};
+            properties[propertyName] = {type: JsonSchemaType.OBJECT, description: descrition, ref: typeReference};
 
         } else {
-            properties[propertyName] = {type: typeName};
+            properties[propertyName] = {type: typeName, description: descrition};
         }
     }
 
