@@ -18,4 +18,5 @@ export interface SampleIf {
     param6: boolean[];
     param7: SubIf;
     param8: SubIf[];
+    param9: object;
 }

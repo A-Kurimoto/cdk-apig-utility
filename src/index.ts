@@ -6,10 +6,9 @@ import {
     Identifier,
     InterfaceDeclaration,
     Node,
-    ScriptTarget,
-    SyntaxKind,
     ScriptKind,
-    ParameterDeclaration
+    ScriptTarget,
+    SyntaxKind
 } from 'typescript';
 
 
@@ -204,6 +203,8 @@ export class CdkApigUtility {
                     return node.getText();
                 case SyntaxKind.ArrayType:
                     return JsonSchemaType.ARRAY;
+                case SyntaxKind.NullKeyword:
+                    return JsonSchemaType.NULL;
             }
         }
         return null;
