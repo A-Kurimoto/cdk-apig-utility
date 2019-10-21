@@ -56,12 +56,16 @@ export class CdkApigUtility {
                 if (ts.isInterfaceDeclaration(node)) {
                     modelName = (node as InterfaceDeclaration).name.escapedText as string;
                     node.members.forEach(member => {
-                        CdkApigUtility.setProperties(member, properties);
+                        if (member.kind === SyntaxKind.PropertySignature) {
+                            CdkApigUtility.setProperties(member, properties);
+                        }
                     });
                 } else if (ts.isClassDeclaration(node)) {
                     modelName = ((node as ClassDeclaration).name as Identifier).escapedText as string;
                     node.members.forEach(member => {
-                        CdkApigUtility.setProperties(member, properties);
+                        if (member.kind === SyntaxKind.PropertyDeclaration) {
+                            CdkApigUtility.setProperties(member, properties);
+                        }
                     });
                 }
                 ts.forEachChild(node, visit);

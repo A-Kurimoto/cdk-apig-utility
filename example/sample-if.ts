@@ -1,6 +1,6 @@
-import {SubRequest} from './sub/sub-request';
+import {SubIf} from './sub/sub-if';
 
-export interface SampleRequest {
+export interface SampleIf {
     /**
      * @desc jsDoc of param1
      */
@@ -16,6 +16,6 @@ export interface SampleRequest {
     param4: string[];
     param5: number[];
     param6: boolean[];
-    param7: SubRequest;
-    param8: SubRequest[];
+    param7: SubIf;
+    param8: SubIf[];
 }
