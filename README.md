@@ -1,5 +1,6 @@
 [![npm version](https://badge.fury.io/js/cdk-apig-utility.svg)](https://badge.fury.io/js/cdk-apig-utility)
 [![Build Status](https://travis-ci.org/A-Kurimoto/cdk-apig-utility.svg?branch=master)](https://travis-ci.org/A-Kurimoto/cdk-apig-utility)
+[![Coverage Status](https://coveralls.io/repos/github/A-Kurimoto/cdk-apig-utility/badge.svg?branch=master)](https://coveralls.io/github/A-Kurimoto/cdk-apig-utility?branch=master)
 
 cdk-apig-utility
 ====
