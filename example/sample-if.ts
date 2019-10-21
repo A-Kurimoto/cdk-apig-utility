@@ -2,11 +2,11 @@ import {SubIf} from './sub/sub-if';
 
 export interface SampleIf {
     /**
-     * @desc jsDoc of param1
+     * @desc JSDoc of param1
      */
     param1: string;
     /**
-     * @description jsDoc of param2
+     * @description JSDoc of param2
      */
     param2: number;
     /**
