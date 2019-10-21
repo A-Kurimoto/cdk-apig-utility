@@ -25,7 +25,6 @@ export class CdkApigUtility {
             });
         };
         setSrcPaths(dir);
-        console.log(srcPaths);
         return this.convertFromFiles(srcPaths);
     }
 
