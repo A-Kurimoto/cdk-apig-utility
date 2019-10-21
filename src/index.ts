@@ -1,7 +1,7 @@
 import {JsonSchema, JsonSchemaType, JsonSchemaVersion, ModelOptions} from '@aws-cdk/aws-apigateway';
-import * as fs from "fs";
-import * as ts from "typescript";
-import {ClassDeclaration, Identifier, InterfaceDeclaration, Node, ScriptTarget, SyntaxKind} from "typescript";
+import * as fs from 'fs';
+import * as ts from 'typescript';
+import {ClassDeclaration, Identifier, InterfaceDeclaration, Node, ScriptTarget, SyntaxKind} from 'typescript';
 
 
 export class CdkApigUtility {
@@ -73,10 +73,8 @@ export class CdkApigUtility {
 
     private replaceRefToProps(results: ModelOptions[]) {
         results.forEach(modelOption => {
-            const entries = Object.entries(modelOption.schema.properties as JsonSchema);
-            entries.forEach(entry => {
-                const key = entry[0];
-                const value = entry[1];
+            const values = Object.values(modelOption.schema.properties as JsonSchema);
+            values.forEach(value => {
                 if (value.ref) {
                     const refObj = results.find(result => result.modelName === value.ref);
                     if (refObj) {
