@@ -1,10 +1,11 @@
 {
   "name": "cdk-apig-utility",
-  "version": "0.2.2",
+  "version": "0.2.4",
   "description": "It auto-generates json schema object from entity class to define swagger easily at API Gateway using CDK.",
-  "main": "src/index.ts",
+  "main": "src/index.js",
   "scripts": {
-    "build": "webpack --mode=development",
+    "build": "tsc",
+    "prepare": "npm run build",
     "watch": "tsc -w",
     "test": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' mocha -r ts-node/register test/**/*.ts"
   },
