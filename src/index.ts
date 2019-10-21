@@ -18,11 +18,14 @@ export class CdkApigUtility {
                 if (fs.statSync(fullPath).isDirectory()) {
                     setSrcPaths(fullPath);
                 } else {
-                    srcPaths.push(fullPath);
+                    if(fullPath.endsWith('.ts')){
+                        srcPaths.push(fullPath);
+                    }
                 }
             });
         };
         setSrcPaths(dir);
+        console.log(srcPaths);
         return this.convertFromFiles(srcPaths);
     }
 
