@@ -19,4 +19,12 @@ export interface SampleIf {
     param7: SubIf;
     param8: SubIf[];
     param9: object;
+    param10: object[];
+    param11: null;
+    param12: null[];
+    param13: string[][];
+    /**
+     * ignored union type.
+     */
+    paramUnion: null | undefined | string;
 }
