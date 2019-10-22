@@ -8,6 +8,9 @@ export class SubClass {
      */
     subClassParamUnion: null | undefined | string;
 
+    /**
+     * ignored
+     */
     constructor() {
         this.subClassParam1 = '';
         this.subClassParam2 = {};
