@@ -135,6 +135,12 @@ const targetModel = modelOptions.find(modelOption => modelOption.modelName === '
 
 If you have written the JSDoc's `@desc` or `@description` tag at the property, it can be converted to description.
 
+### How to use with CDK.
+
+Please see the following test code.
+
+[create cf template](https://github.com/A-Kurimoto/cdk-apig-utility/blob/master/test/test.ts)
+
 ## Licence
 
 [MIT](https://github.com/A-Kurimoto/cdk-apig-utility/blob/master/LICENSE)

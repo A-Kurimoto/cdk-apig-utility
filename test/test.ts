@@ -25,11 +25,8 @@ describe('CdkApigUtility', () => {
     }).timeout(5000);
     it('create cf template', () => {
         const app = new App({outdir: 'cdk.out'});
-        const stack = new SampleApigStack(app, 'SampleStack', {});
-        const api = new RestApi(stack, `TestApi`, {
-            restApiName: 'TestApi',
-            deployOptions: {stageName: 'development'}
-        });
+        const stack = new SampleApigStack(app, 'SampleApigStack');
+        const api = new RestApi(stack, `TestApi`);
         const modelOptions: ModelOptions[] = new CdkApigUtility().convertFromDir('example/dto');
         const sampleClass = modelOptions.find(modelOption => modelOption.modelName === 'SampleClass') as ModelOptions;
         api.addModel(`SampleClassModel`, sampleClass);
