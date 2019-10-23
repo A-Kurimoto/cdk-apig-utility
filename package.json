@@ -1,6 +1,6 @@
 {
   "name": "cdk-apig-utility",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "It auto-generates json schema object from entity class to define swagger easily at API Gateway using CDK.",
   "main": "src/index.js",
   "scripts": {
