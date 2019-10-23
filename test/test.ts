@@ -13,8 +13,10 @@ describe('CdkApigUtility', () => {
         })
     }).timeout(5000);
     it('convertFromFiles', () => {
-        const results = new CdkApigUtility().convertFromFiles(['example/dto/sample-if.ts', 'example/dto/sub/sub-if.ts',
-            'example/sample-class.ts']);
+        const results = new CdkApigUtility().convertFromFiles([
+            'example/dto/sample-if.ts',
+            'example/dto/sub/sub-if.ts',
+            'example/dto/sample-class.ts']);
         results.forEach(res => {
             console.log(res.modelName);
             console.dir(res, {depth: 10});
