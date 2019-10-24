@@ -1,5 +1,10 @@
-import {JsonSchema, JsonSchemaType, JsonSchemaVersion, ModelOptions} from '@aws-cdk/aws-apigateway';
-import * as fs from 'fs';
+import {
+    CfnDocumentationPart,
+    JsonSchema,
+    JsonSchemaType,
+    JsonSchemaVersion,
+    ModelOptions
+} from '@aws-cdk/aws-apigateway';
 import * as ts from 'typescript';
 import {
     ClassDeclaration,
@@ -10,38 +15,78 @@ import {
     ScriptTarget,
     SyntaxKind
 } from 'typescript';
-
+import {Construct} from '@aws-cdk/core';
+import * as fs from 'fs';
 
 export class CdkApigUtility {
 
-    /**
-     *
-     * @param dir Directory of class or interface entity sources. This directory must include only entities.¬
-     */
-    convertFromDir(dir: string): ModelOptions[] {
-        const srcPaths: string[] = [];
-        const setSrcPaths = (dir: string) => {
-            fs.readdirSync(dir).forEach(path => {
-                const fullPath = `${dir}/${path}`;
-                if (fs.statSync(fullPath).isDirectory()) {
-                    setSrcPaths(fullPath);
-                } else {
-                    if (fullPath.endsWith('.ts')) {
-                        srcPaths.push(fullPath);
-                    }
-                }
-            });
+    getRequestQueryStringParams(srcPath: string, methodName: string): { [param: string]: boolean } {
+        const sourceFile = ts.createSourceFile(srcPath, fs.readFileSync(srcPath).toString(), ScriptTarget.ES5, true, ScriptKind.TS);
+        const visit = (node: Node) => {
+            //console.log(node.kind);
+            if (ts.isMethodDeclaration(node)) {
+                node.getChildren().forEach(child => {
+                    console.log(child.kind);
+                    console.log(child.getText());
+                });
+                //console.log(node);
+                //const jsDoc = CdkApigUtility.getParam(node);
+                //console.log('-----');
+                //console.log(jsDoc);
+            }
+            ts.forEachChild(node, visit);
         };
-        setSrcPaths(dir);
-        return this.convertFromFiles(srcPaths);
+
+        ts.forEachChild(sourceFile, visit);
+        return {}
+    }
+
+    private static getParam(node: Node): string {
+        const jsDocTags = ts.getJSDocParameterTags(node);
+        console.log(jsDocTags);
+
+
+        return '';
+    }
+
+    createQueryParamDocumentParts(srcPath: string, methodName: string) {
+
+    }
+
+    private createQueryParamDocumentPart(scope: Construct, restApiId: string, path: string, name: string, description: string) {
+        new CfnDocumentationPart(scope, `DocumentQueryParameter${path}-${name}`, {
+            restApiId: restApiId,
+            location: {method: 'GET', name: name, path: path, type: 'QUERY_PARAMETER'},
+            properties: JSON.stringify({description: description})
+        });
     }
 
     /**
-     *
+     * @param dir Directory of class or interface entity sources. This directory must include only entities.
+     */
+    getResponseModelsFromDir(dir: string): ModelOptions[] {
+        return this.convertFromDir(dir);
+    }
+
+    /**
      * @param srcPaths class or interface entity source's paths. If entity has some dependency, you must specify its path simultaneously.
      * @return ModelOptions[]
      * see https://docs.aws.amazon.com/cdk/api/latest/docs/aws-apigateway-readme.html#working-with-models
      * and https://docs.aws.amazon.com/cdk/api/latest/docs/@aws-cdk_aws-apigateway.ModelOptions.html
+     */
+    getResponseModelsFromFiles(srcPaths: string[]): ModelOptions[] {
+        return this.convertFromFiles(srcPaths);
+    }
+
+    /**
+     * @deprecated please use {@function getResponseModelsFromDir}
+     */
+    convertFromDir(dir: string): ModelOptions[] {
+        return this.convertFromFiles(this.getSrcPaths(dir));
+    }
+
+    /**
+     * @deprecated please use {@function getResponseModelsFromFiles}
      */
     convertFromFiles(srcPaths: string[]): ModelOptions[] {
         const results = [];
@@ -83,6 +128,24 @@ export class CdkApigUtility {
         }
         this.replaceRefToProps(results);
         return results;
+    }
+
+    private getSrcPaths(dir: string): string[] {
+        const srcPaths: string[] = [];
+        const setSrcPaths = (dir: string) => {
+            fs.readdirSync(dir).forEach(path => {
+                const fullPath = `${dir}/${path}`;
+                if (fs.statSync(fullPath).isDirectory()) {
+                    setSrcPaths(fullPath);
+                } else {
+                    if (fullPath.endsWith('.ts')) {
+                        srcPaths.push(fullPath);
+                    }
+                }
+            });
+        };
+        setSrcPaths(dir);
+        return srcPaths;
     }
 
     private replaceRefToProps(results: ModelOptions[]) {

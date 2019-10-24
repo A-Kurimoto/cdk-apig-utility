@@ -4,6 +4,10 @@ import {App} from '@aws-cdk/core';
 import {SampleApigStack} from '../example/sample-apig-stack';
 
 describe('CdkApigUtility', () => {
+    it.only('getRequestQueryStringParams', () => {
+        const result = new CdkApigUtility().getRequestQueryStringParams('example/dao/sample-dao.ts', 'getSomething');
+        console.log(result);
+    }).timeout(5000);
     it('convertFromDir', () => {
         const results = new CdkApigUtility().convertFromDir('example/dto');
         results.forEach(res => {
