@@ -2,9 +2,10 @@
 .travis.yml
 .coveralls.yml
 .nyc_output
-coverage
 .gitignore
 .npmignore
 node_modules
 example
 test
+cdk.out
+coverage
