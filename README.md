@@ -10,7 +10,7 @@ Have you ever wished that Swagger could be automatically generated from JSDoc?
 It auto-generates useful CDK’s objects from TypeScript entity(and its JSDoc) to define swagger easily at API Gateway.
 
 # Requirement
-- @aws-cdk/aws-apigateway
+- @aws-cdk/aws-apigateway@1.14.0
 - typescript
 
 # Install
@@ -20,8 +20,6 @@ $ npm install cdk-apig-utility
 ```
 
 # Usage
-
-## Model
 
 At first, please understand the following CDK's document.
 
@@ -38,11 +36,31 @@ const responseModel = api.addModel('ResponseModel', {
 });
 ```
 
-Perhaps you were in pain when you had to write the same contents of the entity in the generation of models.
+```typescript
+const integration = new LambdaIntegration(hello, {
+  proxy: false,
+  requestParameters: {
+    // You can define mapping parameters from your method to your integration
+    // - Destination parameters (the key) are the integration parameters (used in mappings)
+    // - Source parameters (the value) are the source request parameters or expressions
+    // @see: https://docs.aws.amazon.com/apigateway/latest/developerguide/request-response-data-mappings.html
+    'integration.request.querystring.who': 'method.request.querystring.who'
+  },
+  ...
+```
 
-You can auto-generate the above object from following example's entity.
+Perhaps you were in pain when you had to write the same contents of the entity in the generation of models and request parameters.
 
-### Entity's example
+Moreover, you must create the [CfnDocumentationPart](https://docs.aws.amazon.com/cdk/api/latest/docs/@aws-cdk_aws-apigateway.CfnDocumentationPart.html) object so as to write the description of request parameters.
+
+You can auto-generate the above objects from following examples.
+
+## Model
+
+### Example
+
+Model can be generated from entity objects.
+
 ```typescript:sample-if.ts
 import {SubIf} from './sub/sub-if';
 
@@ -79,8 +97,8 @@ export interface SubIf {
 import {CdkApigUtility} from 'cdk-apig-utility';
 import {ModelOptions} from '@aws-cdk/aws-apigateway';
 
-// You can also use convertFromDir method.
-const modelOptions: ModelOptions[] = new CdkApigUtility().convertFromFiles(['sample-if.ts', 'sub/sub-if.ts']);
+// You can also use getResponseModelsFromDir method.
+const modelOptions: ModelOptions[] = new CdkApigUtility().getResponseModelsFromFiles(['sample-if.ts', 'sub/sub-if.ts']);
 
 // You can search the model what you want by 'modelName'(It has a class name or interface name). 
 const targetModel = modelOptions.find(modelOption => modelOption.modelName === 'SampleIf') as ModelOptions;
@@ -135,16 +153,106 @@ const targetModel = modelOptions.find(modelOption => modelOption.modelName === '
 
 If you have written the JSDoc's `@desc` or `@description` tag at the property, it can be converted to description.
 
-### How to use with CDK.
+## Request parameters
+
+### Example
+
+Request parameters can be generated from method's arguments.
+
+```typescript:sample-dao.ts
+    /**
+     * This is sample method.
+     *
+     * @param limit
+     * @param sort
+     1：ascending
+     2：descending
+     * @param word some word
+     * @param isSomeFlg some boolean value1¬
+     * @param someArray some array
+     */
+    async getSomething1(limit: number, offset: number, sort: number, word?: string, isSomeFlg?: boolean,
+                        someArray?: string[]): Promise<any> {
+
+    }
+```
+
+### Execution
+
+```typescript
+const requestParameters = new CdkApigUtility().getRequestQueryStringParams('example/dao/sample-dao.ts', 'getSomething1');
+```
+
+### Result
+
+```json
+{ 
+  "method.request.querystring.limit": true,
+  "method.request.querystring.offset": true,
+  "method.request.querystring.sort": true,
+  "method.request.querystring.word": false,
+  "method.request.querystring.isSomeFlg": false,
+  "method.request.querystring.someArray": false
+}
+```
+
+The values(true or false) can be generated from '?' of arguments.
+
+## Request parameter's documents
+
+Request parameters' documents can be generated from method's arguments and JSDoc.
+
+```typescript:sample-dao.ts
+    /**
+     * This is sample method.
+     *
+     * @param limit
+     * @param sort
+     1：ascending
+     2：descending
+     * @param word some word
+     * @param isSomeFlg some boolean value1¬
+     * @param someArray some array
+     */
+    async getSomething1(limit: number, offset: number, sort: number, word?: string, isSomeFlg?: boolean,
+                        someArray?: string[]): Promise<any> {
+
+    }
+```
+
+### Execution
+
+```typescript
+const descriptions = new CdkApigUtility().getArgumentDescriptions('example/dao/sample-dao.ts', 'getSomething1');
+```
+
+### Result
+
+```json
+[
+  { "name": "sort", "description": "1：ascending\n2：descending" },
+  { "name": "word", "description": "some word" },
+  { "name": "isSomeFlg", "description": "some boolean value1" },
+  { "name": "someArray", "description": "some array" }
+]
+```
+
+If you have written the JSDoc's `@param` tag at the method, it can be converted to description.
+
+You can use this result when you create the [CfnDocumentationPart](https://docs.aws.amazon.com/cdk/api/latest/docs/@aws-cdk_aws-apigateway.CfnDocumentationPart.html).
+
+## How to use with CDK.
 
 Please see the following test code.
 
 [create cf template](https://github.com/A-Kurimoto/cdk-apig-utility/blob/master/test/test.ts)
 
-## Licence
+You can use this model at both request and response.
+
+# Licence
 
 [MIT](https://github.com/A-Kurimoto/cdk-apig-utility/blob/master/LICENSE)
 
-## Author
+# Author
 
 [A-Kurimoto](https://github.com/A-Kurimoto)
