@@ -1,21 +1,27 @@
 export class SampleDao {
 
-
     /**
-     * Sampleです。
+     * This is sample method.
      *
      * @param limit
-     * @param offset
      * @param sort
-     1：昇順
-     2：降順
-     * @param word 検索語句
-     * @param isSomeFlg
-     * @param prefectureCodes 都道府県コードの配列
+     1：ascending
+     2：descending
+     * @param word some word
+     * @param isSomeFlg some boolean value1
+     * @param someArray some array
      */
-    async getSomething(limit: number, offset: number, sort: number, word?: string, isSomeFlg?: boolean,
-                       prefectureCodes?: string[]): Promise<any> {
-  
+    async getSomething1(limit: number, offset: number, sort: number, word?: string, isSomeFlg?: boolean,
+                        someArray?: string[]): Promise<any> {
+
+    }
+
+    /**
+     *
+     * @param limit Description of the limit
+     */
+    getSomething2(limit: number): any {
+
     }
 
 }

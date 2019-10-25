@@ -1,23 +1,32 @@
 import {CdkApigUtility} from '../src';
-import {HttpIntegration, ModelOptions, RestApi} from '@aws-cdk/aws-apigateway';
-import {App} from '@aws-cdk/core';
+import {CfnDocumentationPart, LambdaIntegration, ModelOptions, RestApi} from '@aws-cdk/aws-apigateway';
+import {App, Fn} from '@aws-cdk/core';
 import {SampleApigStack} from '../example/sample-apig-stack';
+import {Function} from '@aws-cdk/aws-lambda';
 
 describe('CdkApigUtility', () => {
-    it.only('getRequestQueryStringParams', () => {
-        const result = new CdkApigUtility().getRequestQueryStringParams('example/dao/sample-dao.ts', 'getSomething');
+    it('getRequestQueryStringParams', () => {
+        let result = new CdkApigUtility().getRequestQueryStringParams('example/dao/sample-dao.ts', 'getSomething1');
+        console.log(result);
+        result = new CdkApigUtility().getRequestQueryStringParams('example/dao/sample-dao.ts', 'getSomething2');
         console.log(result);
     }).timeout(5000);
-    it('convertFromDir', () => {
-        const results = new CdkApigUtility().convertFromDir('example/dto');
+    it('getArgumentDescriptions', () => {
+        let result = new CdkApigUtility().getArgumentDescriptions('example/dao/sample-dao.ts', 'getSomething1');
+        console.log(result);
+        result = new CdkApigUtility().getArgumentDescriptions('example/dao/sample-dao.ts', 'getSomething2');
+        console.log(result);
+    }).timeout(5000);
+    it('getResponseModelsFromDir', () => {
+        const results = new CdkApigUtility().getResponseModelsFromDir('example/dto');
         results.forEach(res => {
             console.log(res.modelName);
             console.dir(res, {depth: 10});
             console.log();
         })
     }).timeout(5000);
-    it('convertFromFiles', () => {
-        const results = new CdkApigUtility().convertFromFiles([
+    it('getResponseModelsFromFiles', () => {
+        const results = new CdkApigUtility().getResponseModelsFromFiles([
             'example/dto/sample-if.ts',
             'example/dto/sub/sub-if.ts',
             'example/dto/sample-class.ts']);
@@ -31,11 +40,49 @@ describe('CdkApigUtility', () => {
         const app = new App({outdir: 'cdk.out'});
         const stack = new SampleApigStack(app, 'SampleApigStack');
         const api = new RestApi(stack, `TestApi`);
-        const modelOptions: ModelOptions[] = new CdkApigUtility().convertFromDir('example/dto');
-        const sampleClass = modelOptions.find(modelOption => modelOption.modelName === 'SampleClass') as ModelOptions;
-        api.addModel(`SampleClassModel`, sampleClass);
+        const v1 = api.root.addResource('v1');
 
-        api.root.addMethod('GET', new HttpIntegration('http://sample.com'));
+        // Create responseModel
+        const modelOptions: ModelOptions[] = new CdkApigUtility().getResponseModelsFromDir('example/dto');
+        const sampleClass = modelOptions.find(modelOption => modelOption.modelName === 'SampleClass') as ModelOptions;
+        const responseModel = api.addModel(`SampleClassModel`, sampleClass);
+
+        // Create request parameters
+        const queryStringParams = new CdkApigUtility().getRequestQueryStringParams('example/dao/sample-dao.ts', 'getSomething1');
+
+        // Create method using above objects.
+        const lambda = Function.fromFunctionArn(stack, `someId`, Fn.importValue(`someValue`));
+        v1.addMethod('GET', new LambdaIntegration(lambda), {
+            requestParameters: queryStringParams,
+            // If this method has body request params, you can also use requestModel which has the same structhre with responseModel.
+            // requestModels: {
+            //     'application/json': requestModel
+            // },
+            methodResponses: [
+                {
+                    statusCode: '200',
+                    responseParameters: {
+                        'method.response.header.Content-Type': true,
+                        'method.response.header.Access-Control-Allow-Origin': true,
+                        'method.response.header.Access-Control-Allow-Credentials': true
+                    },
+                    responseModels: {
+                        'application/json': responseModel
+                    }
+                }
+            ]
+        });
+
+        // Create documentation as for the requestParameters
+        const descriptions = new CdkApigUtility().getArgumentDescriptions('example/dao/sample-dao.ts', 'getSomething1');
+        descriptions.forEach(description => {
+            new CfnDocumentationPart(stack, `DocumentationPart${v1.path}-${description.name}`, {
+                restApiId: api.restApiId,
+                location: {method: 'GET', name: description.name, path: v1.path, type: 'QUERY_PARAMETER'},
+                properties: JSON.stringify({description: description.description})
+            });
+        });
         app.synth();
     });
 });
+

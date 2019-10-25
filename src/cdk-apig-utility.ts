@@ -1,64 +1,110 @@
-import {
-    CfnDocumentationPart,
-    JsonSchema,
-    JsonSchemaType,
-    JsonSchemaVersion,
-    ModelOptions
-} from '@aws-cdk/aws-apigateway';
+import {JsonSchema, JsonSchemaType, JsonSchemaVersion, ModelOptions} from '@aws-cdk/aws-apigateway';
 import * as ts from 'typescript';
 import {
     ClassDeclaration,
     Identifier,
     InterfaceDeclaration,
     Node,
+    ParameterDeclaration,
     ScriptKind,
     ScriptTarget,
     SyntaxKind
 } from 'typescript';
-import {Construct} from '@aws-cdk/core';
 import * as fs from 'fs';
 
 export class CdkApigUtility {
 
+    /**
+     * You can get query string parameters from method's argument.
+     * (This method is not support header or path parameters.)
+     * @param srcPath
+     * @param methodName
+     * @return MethodOptions#requestParameters
+     */
     getRequestQueryStringParams(srcPath: string, methodName: string): { [param: string]: boolean } {
-        const sourceFile = ts.createSourceFile(srcPath, fs.readFileSync(srcPath).toString(), ScriptTarget.ES5, true, ScriptKind.TS);
+        const result: { [param: string]: boolean } = {};
+        const sourceFile = ts.createSourceFile(srcPath, fs.readFileSync(srcPath).toString(), ScriptTarget.ES5,
+            true, ScriptKind.TS);
         const visit = (node: Node) => {
-            //console.log(node.kind);
             if (ts.isMethodDeclaration(node)) {
+                let isTargetMethod = false;
                 node.getChildren().forEach(child => {
-                    console.log(child.kind);
-                    console.log(child.getText());
+                    if (ts.isIdentifier(child) && child.getText() === methodName) {
+                        isTargetMethod = true;
+                    }
                 });
-                //console.log(node);
-                //const jsDoc = CdkApigUtility.getParam(node);
-                //console.log('-----');
-                //console.log(jsDoc);
+                if (isTargetMethod) {
+                    node.getChildren().forEach(child => {
+                        if (child.kind === SyntaxKind.SyntaxList) {
+                            child.getChildren().forEach(gChild => {
+                                if (gChild.kind === SyntaxKind.Parameter) {
+                                    let paramName = '';
+                                    let isRequired = true;
+                                    gChild.getChildren().forEach(ggChild => {
+                                        if (ts.isIdentifier(ggChild)) {
+                                            paramName = ggChild.getText();
+                                        } else if (ggChild.kind === SyntaxKind.QuestionToken) {
+                                            isRequired = false;
+                                        }
+                                    });
+                                    result[`method.request.querystring.${paramName}`] = isRequired;
+                                }
+                            });
+                        }
+                    });
+                }
             }
             ts.forEachChild(node, visit);
         };
-
         ts.forEachChild(sourceFile, visit);
-        return {}
+        return result;
     }
 
-    private static getParam(node: Node): string {
-        const jsDocTags = ts.getJSDocParameterTags(node);
-        console.log(jsDocTags);
-
-
-        return '';
-    }
-
-    createQueryParamDocumentParts(srcPath: string, methodName: string) {
-
-    }
-
-    private createQueryParamDocumentPart(scope: Construct, restApiId: string, path: string, name: string, description: string) {
-        new CfnDocumentationPart(scope, `DocumentQueryParameter${path}-${name}`, {
-            restApiId: restApiId,
-            location: {method: 'GET', name: name, path: path, type: 'QUERY_PARAMETER'},
-            properties: JSON.stringify({description: description})
-        });
+    /**
+     * You can get argument names and those descriptions written in the JSDoc as @param so as to use {CfnDocumentationPart}
+     * easily.
+     * @param srcPath
+     * @param methodName
+     */
+    getArgumentDescriptions(srcPath: string, methodName: string): { name: string, description: string }[] {
+        const result: { name: string, description: string }[] = [];
+        const sourceFile = ts.createSourceFile(srcPath, fs.readFileSync(srcPath).toString(), ScriptTarget.ES5,
+            true, ScriptKind.TS);
+        const visit = (node: Node) => {
+            if (ts.isMethodDeclaration(node)) {
+                let isTargetMethod = false;
+                node.getChildren().forEach(child => {
+                    if (ts.isIdentifier(child) && child.getText() === methodName) {
+                        isTargetMethod = true;
+                    }
+                });
+                if (isTargetMethod) {
+                    node.getChildren().forEach(child => {
+                        if (child.kind === SyntaxKind.SyntaxList) {
+                            child.getChildren().forEach(gChild => {
+                                if (gChild.kind === SyntaxKind.Parameter) {
+                                    let paramName = '';
+                                    gChild.getChildren().forEach(ggChild => {
+                                        if (ts.isIdentifier(ggChild)) {
+                                            paramName = ggChild.getText();
+                                        }
+                                    });
+                                    const paramTags = ts.getJSDocParameterTags(gChild as ParameterDeclaration);
+                                    paramTags.forEach(paramTag => {
+                                        if (paramName && paramTag.comment) {
+                                            result.push({name: paramName, description: paramTag.comment})
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    });
+                }
+            }
+            ts.forEachChild(node, visit);
+        };
+        ts.forEachChild(sourceFile, visit);
+        return result;
     }
 
     /**
