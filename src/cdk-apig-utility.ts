@@ -1,47 +1,138 @@
 import {JsonSchema, JsonSchemaType, JsonSchemaVersion, ModelOptions} from '@aws-cdk/aws-apigateway';
-import * as fs from 'fs';
 import * as ts from 'typescript';
 import {
     ClassDeclaration,
     Identifier,
     InterfaceDeclaration,
     Node,
+    ParameterDeclaration,
     ScriptKind,
     ScriptTarget,
     SyntaxKind
 } from 'typescript';
-
+import * as fs from 'fs';
 
 export class CdkApigUtility {
 
     /**
-     *
-     * @param dir Directory of class or interface entity sources. This directory must include only entities.¬
+     * You can get query string parameters from method's argument.
+     * (This method is not support header or path parameters.)
+     * @param srcPath
+     * @param methodName
+     * @return MethodOptions#requestParameters
      */
-    convertFromDir(dir: string): ModelOptions[] {
-        const srcPaths: string[] = [];
-        const setSrcPaths = (dir: string) => {
-            fs.readdirSync(dir).forEach(path => {
-                const fullPath = `${dir}/${path}`;
-                if (fs.statSync(fullPath).isDirectory()) {
-                    setSrcPaths(fullPath);
-                } else {
-                    if (fullPath.endsWith('.ts')) {
-                        srcPaths.push(fullPath);
+    getRequestQueryStringParams(srcPath: string, methodName: string): { [param: string]: boolean } {
+        const result: { [param: string]: boolean } = {};
+        const sourceFile = ts.createSourceFile(srcPath, fs.readFileSync(srcPath).toString(), ScriptTarget.ES5,
+            true, ScriptKind.TS);
+        const visit = (node: Node) => {
+            if (ts.isMethodDeclaration(node)) {
+                let isTargetMethod = false;
+                node.getChildren().forEach(child => {
+                    if (ts.isIdentifier(child) && child.getText() === methodName) {
+                        isTargetMethod = true;
                     }
+                });
+                if (isTargetMethod) {
+                    node.getChildren().forEach(child => {
+                        if (child.kind === SyntaxKind.SyntaxList) {
+                            child.getChildren().forEach(gChild => {
+                                if (gChild.kind === SyntaxKind.Parameter) {
+                                    let paramName = '';
+                                    let isRequired = true;
+                                    gChild.getChildren().forEach(ggChild => {
+                                        if (ts.isIdentifier(ggChild)) {
+                                            paramName = ggChild.getText();
+                                        } else if (ggChild.kind === SyntaxKind.QuestionToken) {
+                                            isRequired = false;
+                                        }
+                                    });
+                                    result[`method.request.querystring.${paramName}`] = isRequired;
+                                }
+                            });
+                        }
+                    });
                 }
-            });
+            }
+            ts.forEachChild(node, visit);
         };
-        setSrcPaths(dir);
-        return this.convertFromFiles(srcPaths);
+        ts.forEachChild(sourceFile, visit);
+        return result;
     }
 
     /**
-     *
+     * You can get argument names and those descriptions written in the JSDoc as @param so as to use {CfnDocumentationPart}
+     * easily.
+     * @param srcPath
+     * @param methodName
+     */
+    getArgumentDescriptions(srcPath: string, methodName: string): { name: string, description: string }[] {
+        const result: { name: string, description: string }[] = [];
+        const sourceFile = ts.createSourceFile(srcPath, fs.readFileSync(srcPath).toString(), ScriptTarget.ES5,
+            true, ScriptKind.TS);
+        const visit = (node: Node) => {
+            if (ts.isMethodDeclaration(node)) {
+                let isTargetMethod = false;
+                node.getChildren().forEach(child => {
+                    if (ts.isIdentifier(child) && child.getText() === methodName) {
+                        isTargetMethod = true;
+                    }
+                });
+                if (isTargetMethod) {
+                    node.getChildren().forEach(child => {
+                        if (child.kind === SyntaxKind.SyntaxList) {
+                            child.getChildren().forEach(gChild => {
+                                if (gChild.kind === SyntaxKind.Parameter) {
+                                    let paramName = '';
+                                    gChild.getChildren().forEach(ggChild => {
+                                        if (ts.isIdentifier(ggChild)) {
+                                            paramName = ggChild.getText();
+                                        }
+                                    });
+                                    const paramTags = ts.getJSDocParameterTags(gChild as ParameterDeclaration);
+                                    paramTags.forEach(paramTag => {
+                                        if (paramName && paramTag.comment) {
+                                            result.push({name: paramName, description: paramTag.comment})
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    });
+                }
+            }
+            ts.forEachChild(node, visit);
+        };
+        ts.forEachChild(sourceFile, visit);
+        return result;
+    }
+
+    /**
+     * @param dir Directory of class or interface entity sources. This directory must include only entities.
+     */
+    getResponseModelsFromDir(dir: string): ModelOptions[] {
+        return this.convertFromDir(dir);
+    }
+
+    /**
      * @param srcPaths class or interface entity source's paths. If entity has some dependency, you must specify its path simultaneously.
      * @return ModelOptions[]
      * see https://docs.aws.amazon.com/cdk/api/latest/docs/aws-apigateway-readme.html#working-with-models
      * and https://docs.aws.amazon.com/cdk/api/latest/docs/@aws-cdk_aws-apigateway.ModelOptions.html
+     */
+    getResponseModelsFromFiles(srcPaths: string[]): ModelOptions[] {
+        return this.convertFromFiles(srcPaths);
+    }
+
+    /**
+     * @deprecated please use {@function getResponseModelsFromDir}
+     */
+    convertFromDir(dir: string): ModelOptions[] {
+        return this.convertFromFiles(this.getSrcPaths(dir));
+    }
+
+    /**
+     * @deprecated please use {@function getResponseModelsFromFiles}
      */
     convertFromFiles(srcPaths: string[]): ModelOptions[] {
         const results = [];
@@ -83,6 +174,24 @@ export class CdkApigUtility {
         }
         this.replaceRefToProps(results);
         return results;
+    }
+
+    private getSrcPaths(dir: string): string[] {
+        const srcPaths: string[] = [];
+        const setSrcPaths = (dir: string) => {
+            fs.readdirSync(dir).forEach(path => {
+                const fullPath = `${dir}/${path}`;
+                if (fs.statSync(fullPath).isDirectory()) {
+                    setSrcPaths(fullPath);
+                } else {
+                    if (fullPath.endsWith('.ts')) {
+                        srcPaths.push(fullPath);
+                    }
+                }
+            });
+        };
+        setSrcPaths(dir);
+        return srcPaths;
     }
 
     private replaceRefToProps(results: ModelOptions[]) {
