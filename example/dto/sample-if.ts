@@ -24,7 +24,27 @@ export interface SampleIf {
     param12: null[];
     param13: string[][];
     /**
+     * accepted union type.
+     */
+    paramUnion1?: string;
+    /**
+     * accepted union type.
+     */
+    paramUnion2: undefined | string;
+    /**
+     * accepted union type.
+     */
+    paramUnion3: null | SubIf;
+    /**
+     * accepted union type.
+     */
+    paramUnion4: null | undefined | SubIf[];
+    /**
      * ignored union type.
      */
-    paramUnion: null | undefined | string;
+    paramUnion5: null | number | string;
+    /**
+     * ignored union type.
+     */
+    paramUnion6: undefined | number | string;
 }
