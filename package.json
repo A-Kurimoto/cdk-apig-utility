@@ -43,12 +43,12 @@
   },
   "homepage": "https://github.com/A-Kurimoto/cdk-apig-utility#readme",
   "dependencies": {
-    "@aws-cdk/aws-apigateway": "^1.14.0",
+    "@aws-cdk/aws-apigateway": "^1.15.0",
     "typescript": "^3.6.4"
   },
   "devDependencies": {
     "@types/mocha": "^5.2.7",
-    "@types/node": "^12.11.7",
+    "@types/node": "^12.12.5",
     "coveralls": "^3.0.7",
     "mocha": "^6.2.2",
     "nyc": "^14.1.1",
