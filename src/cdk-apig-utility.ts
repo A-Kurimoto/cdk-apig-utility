@@ -249,12 +249,52 @@ export class CdkApigUtility {
                 case SyntaxKind.NullKeyword:
                     typeName = JsonSchemaType.NULL;
                     break;
+                case SyntaxKind.UnionType:
+                    let unionTypes = [];
+                    for (const gChild of child.getChildren()) {
+                        if (gChild.kind === SyntaxKind.SyntaxList) {
+                            for (const ggChild of gChild.getChildren()) {
+                                const jsonSchemaType = CdkApigUtility.getNotNullType(ggChild);
+                                if (jsonSchemaType) {
+                                    unionTypes.push(jsonSchemaType);
+                                }
+                            }
+                        }
+                    }
+                    if (unionTypes.length === 1) {
+                        typeName = unionTypes[0].type;
+                        if (unionTypes[0].child) {
+                            arrayChild = unionTypes[0].child;
+                        }
+                        if (unionTypes[0].reference) {
+                            typeReference = unionTypes[0].reference;
+                        }
+                    }
+                    break;
             }
         }
         if (propertyName && typeName) {
             const descrition = CdkApigUtility.getDescription(memberNode);
             CdkApigUtility._setProperties(properties, propertyName, descrition, typeName, arrayChild, typeReference);
         }
+    }
+
+    private static getNotNullType(node: Node): { type: JsonSchemaType, child?: Node, reference?: string } | null {
+        switch (node.kind) {
+            case SyntaxKind.StringKeyword:
+                return {type: JsonSchemaType.STRING};
+            case SyntaxKind.NumberKeyword:
+                return {type: JsonSchemaType.NUMBER};
+            case SyntaxKind.BooleanKeyword:
+                return {type: JsonSchemaType.BOOLEAN};
+            case SyntaxKind.ObjectKeyword:
+                return {type: JsonSchemaType.OBJECT};
+            case SyntaxKind.TypeReference:
+                return {type: JsonSchemaType.OBJECT, reference: node.getText()};
+            case SyntaxKind.ArrayType:
+                return {type: JsonSchemaType.ARRAY, child: node};
+        }
+        return null;
     }
 
     private static getDescription(node: Node): string {
