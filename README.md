@@ -10,7 +10,7 @@ Have you ever wished that Swagger could be automatically generated from JSDoc?
 It auto-generates useful CDK’s objects from TypeScript entity(and its JSDoc) to define swagger easily at API Gateway.
 
 # Requirement
-- @aws-cdk/aws-apigateway@1.14.0
+- @aws-cdk/aws-apigateway@1.27.0
 - typescript
 
 # Install
@@ -97,8 +97,8 @@ export interface SubIf {
 import {CdkApigUtility} from 'cdk-apig-utility';
 import {ModelOptions} from '@aws-cdk/aws-apigateway';
 
-// You can also use getResponseModelsFromDir method.
-const modelOptions: ModelOptions[] = new CdkApigUtility().getResponseModelsFromFiles(['sample-if.ts', 'sub/sub-if.ts']);
+// You can also use getModelsFromDir method.
+const modelOptions: ModelOptions[] = new CdkApigUtility().getModelsFromFiles(['sample-if.ts', 'sub/sub-if.ts']);
 
 // You can search the model what you want by 'modelName'(It has a class name or interface name). 
 const targetModel = modelOptions.find(modelOption => modelOption.modelName === 'SampleIf') as ModelOptions;
