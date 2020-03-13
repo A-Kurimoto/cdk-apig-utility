@@ -108,10 +108,11 @@ export class CdkApigUtility {
     }
 
     /**
-     * @param dir Directory of class or interface entity sources. This directory must include only entities.
+     *
+     * @param dir Directory of class or interface entity sources. It also search sub-directory. This directory must include only entities.
      */
-    getResponseModelsFromDir(dir: string): ModelOptions[] {
-        return this.convertFromDir(dir);
+    getModelsFromDir(dir: string): ModelOptions[] {
+        return this.getResponseModelsFromDir(dir);
     }
 
     /**
@@ -119,6 +120,20 @@ export class CdkApigUtility {
      * @return ModelOptions[]
      * see https://docs.aws.amazon.com/cdk/api/latest/docs/aws-apigateway-readme.html#working-with-models
      * and https://docs.aws.amazon.com/cdk/api/latest/docs/@aws-cdk_aws-apigateway.ModelOptions.html
+     */
+    getModelsFromFiles(srcPaths: string[]): ModelOptions[] {
+        return this.getResponseModelsFromFiles(srcPaths);
+    }
+
+    /**
+     * @deprecated please use {@function getModelsFromDir}
+     */
+    getResponseModelsFromDir(dir: string): ModelOptions[] {
+        return this.convertFromDir(dir);
+    }
+
+    /**
+     * @deprecated please use {@function getModelsFromFiles}
      */
     getResponseModelsFromFiles(srcPaths: string[]): ModelOptions[] {
         return this.convertFromFiles(srcPaths);
@@ -135,23 +150,27 @@ export class CdkApigUtility {
      * @deprecated please use {@function getResponseModelsFromFiles}
      */
     convertFromFiles(srcPaths: string[]): ModelOptions[] {
-        const results = [];
+        const results: ModelOptions[] = [];
 
         for (const srcPath of srcPaths) {
             const sourceFile = ts.createSourceFile(srcPath, fs.readFileSync(srcPath).toString(), ScriptTarget.ES5, true, ScriptKind.TS);
-            const properties: { [name: string]: JsonSchema; } = {};
-            let modelName = '';
+
+            const models: { modelName: string, properties: { [name: string]: JsonSchema; } }[] = [];
 
             const visit = (node: Node) => {
                 if (ts.isInterfaceDeclaration(node)) {
-                    modelName = (node as InterfaceDeclaration).name.escapedText as string;
+                    const modelName = (node as InterfaceDeclaration).name.escapedText as string;
+                    const properties: { [name: string]: JsonSchema; } = {};
+                    models.push({modelName, properties});
                     node.members.forEach(member => {
                         if (member.kind === SyntaxKind.PropertySignature) {
                             CdkApigUtility.setProperties(member, properties);
                         }
                     });
                 } else if (ts.isClassDeclaration(node)) {
-                    modelName = ((node as ClassDeclaration).name as Identifier).escapedText as string;
+                    const modelName = ((node as ClassDeclaration).name as Identifier).escapedText as string;
+                    const properties: { [name: string]: JsonSchema; } = {};
+                    models.push({modelName, properties});
                     node.members.forEach(member => {
                         if (member.kind === SyntaxKind.PropertyDeclaration) {
                             CdkApigUtility.setProperties(member, properties);
@@ -162,14 +181,16 @@ export class CdkApigUtility {
             };
 
             ts.forEachChild(sourceFile, visit);
-            results.push({
-                contentType: 'application/json',
-                modelName: modelName,
-                schema: {
-                    schema: JsonSchemaVersion.DRAFT4,
-                    type: JsonSchemaType.OBJECT,
-                    properties: properties
-                }
+            models.forEach(model => {
+                results.push({
+                    contentType: 'application/json',
+                    modelName: model.modelName,
+                    schema: {
+                        schema: JsonSchemaVersion.DRAFT4,
+                        type: JsonSchemaType.OBJECT,
+                        properties: model.properties
+                    }
+                });
             });
         }
         this.replaceRefToProps(results);

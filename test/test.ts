@@ -17,16 +17,16 @@ describe('CdkApigUtility', () => {
         result = new CdkApigUtility().getArgumentDescriptions('example/dao/sample-dao.ts', 'getSomething2');
         console.log(result);
     }).timeout(5000);
-    it('getResponseModelsFromDir', () => {
-        const results = new CdkApigUtility().getResponseModelsFromDir('example/dto');
+    it('getModelsFromDir', () => {
+        const results = new CdkApigUtility().getModelsFromDir('example/dto');
         results.forEach(res => {
             console.log(res.modelName);
             console.dir(res, {depth: 10});
             console.log();
         })
     }).timeout(5000);
-    it('getResponseModelsFromFiles', () => {
-        const results = new CdkApigUtility().getResponseModelsFromFiles([
+    it('getModelsFromFiles', () => {
+        const results = new CdkApigUtility().getModelsFromFiles([
             'example/dto/sample-if.ts',
             'example/dto/sub/sub-if.ts',
             'example/dto/sample-class.ts']);
@@ -43,7 +43,7 @@ describe('CdkApigUtility', () => {
         const v1 = api.root.addResource('v1');
 
         // Create responseModel
-        const modelOptions: ModelOptions[] = new CdkApigUtility().getResponseModelsFromDir('example/dto');
+        const modelOptions: ModelOptions[] = new CdkApigUtility().getModelsFromDir('example/dto');
         const sampleClass = modelOptions.find(modelOption => modelOption.modelName === 'SampleClass') as ModelOptions;
         const responseModel = api.addModel(`SampleClassModel`, sampleClass);
 
