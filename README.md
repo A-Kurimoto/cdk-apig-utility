@@ -10,8 +10,9 @@ Have you ever wished that Swagger could be automatically generated from JSDoc?
 It auto-generates useful CDK’s objects from TypeScript entity(and its JSDoc) to define swagger easily at API Gateway.
 
 # Requirement
-- @aws-cdk/aws-apigateway@1.27.0
-- typescript
+- aws-cdk-lib@2.51.1
+- constructs@10.1.168
+- typescript@4.9.3
 
 # Install
 

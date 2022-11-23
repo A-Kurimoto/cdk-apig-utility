@@ -1,4 +1,4 @@
-import {JsonSchema, JsonSchemaType, JsonSchemaVersion, ModelOptions} from '@aws-cdk/aws-apigateway';
+import {JsonSchema, JsonSchemaType, JsonSchemaVersion, ModelOptions} from 'aws-cdk-lib/aws-apigateway';
 import * as ts from 'typescript';
 import {
     ClassDeclaration,
@@ -92,7 +92,11 @@ export class CdkApigUtility {
                                     const paramTags = ts.getJSDocParameterTags(gChild as ParameterDeclaration);
                                     paramTags.forEach(paramTag => {
                                         if (paramName && paramTag.comment) {
-                                            result.push({name: paramName, description: paramTag.comment})
+                                            if (typeof paramTag.comment === 'string') {
+                                                result.push({name: paramName, description: paramTag.comment})
+                                            } else {
+                                                result.push({name: paramName, description: paramTag.comment.toString()})
+                                            }
                                         }
                                     });
                                 }
@@ -323,7 +327,14 @@ export class CdkApigUtility {
         if (jsDocTags) {
             for (const tag of jsDocTags) {
                 if (tag.tagName.escapedText === 'desc' || tag.tagName.escapedText === 'description') {
-                    return tag.comment ? tag.comment : 'No description.';
+                    if (tag.comment) {
+                        if (typeof tag.comment === 'string') {
+                            return tag.comment;
+                        } else {
+                            return tag.comment.toString();
+                        }
+                    }
+                    return 'No description.';
                 }
             }
         }

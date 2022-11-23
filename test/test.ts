@@ -1,8 +1,8 @@
 import {CdkApigUtility} from '../src';
-import {CfnDocumentationPart, LambdaIntegration, ModelOptions, RestApi} from '@aws-cdk/aws-apigateway';
-import {App, Fn} from '@aws-cdk/core';
+import {CfnDocumentationPart, LambdaIntegration, ModelOptions, RestApi} from 'aws-cdk-lib/aws-apigateway';
+import {App, Fn} from 'aws-cdk-lib';
 import {SampleApigStack} from '../example/sample-apig-stack';
-import {Function} from '@aws-cdk/aws-lambda';
+import {Function} from 'aws-cdk-lib/aws-lambda';
 
 describe('CdkApigUtility', () => {
     it('getRequestQueryStringParams', () => {
