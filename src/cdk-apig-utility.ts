@@ -68,56 +68,56 @@ export class CdkApigUtility {
       return result;
     }
   
-    /**
+   /**
      * You can get argument names and those descriptions written in the JSDoc as @param so as to use {CfnDocumentationPart}
      * easily.
      * @param srcPath
      * @param methodName
      */
-    getArgumentDescriptions(srcPath: string, methodName: string): { name: string, description: string }[] {
-      const result: { name: string, description: string }[] = [];
-      const sourceFile = ts.createSourceFile(srcPath, fs.readFileSync(srcPath).toString(), ScriptTarget.ES5,
-          true, ScriptKind.TS);
-      const visit = (node: Node) => {
-          if (ts.isMethodDeclaration(node)) {
-              let isTargetMethod = false;
-              node.getChildren().forEach(child => {
-                  if (ts.isIdentifier(child) && child.getText() === methodName) {
-                      isTargetMethod = true;
-                  }
-              });
-              if (isTargetMethod) {
-                  node.getChildren().forEach(child => {
-                      if (child.kind === SyntaxKind.SyntaxList) {
-                          child.getChildren().forEach(gChild => {
-                              if (gChild.kind === SyntaxKind.Parameter) {
-                                  let paramName = '';
-                                  gChild.getChildren().forEach(ggChild => {
-                                      if (ts.isIdentifier(ggChild)) {
-                                          paramName = ggChild.getText();
-                                      }
-                                  });
-                                  const paramTags = ts.getJSDocParameterTags(gChild as ParameterDeclaration);
-                                  paramTags.forEach(paramTag => {
-                                      if (paramName && paramTag.comment) {
-                                          if (typeof paramTag.comment === 'string') {
-                                              result.push({name: paramName, description: paramTag.comment})
-                                          } else {
-                                              result.push({name: paramName, description: paramTag.comment.toString()})
-                                          }
-                                      }
-                                  });
-                              }
-                          });
-                      }
-                  });
-              }
-          }
-          ts.forEachChild(node, visit);
-      };
-      ts.forEachChild(sourceFile, visit);
-      return result;
-    }
+   getArgumentDescriptions(srcPath: string, methodName: string): { name: string, description: string }[] {
+    const result: { name: string, description: string }[] = [];
+    const sourceFile = ts.createSourceFile(srcPath, fs.readFileSync(srcPath).toString(), ScriptTarget.ES5,
+        true, ScriptKind.TS);
+    const visit = (node: Node) => {
+        if (ts.isMethodDeclaration(node)) {
+            let isTargetMethod = false;
+            node.getChildren().forEach(child => {
+                if (ts.isIdentifier(child) && child.getText() === methodName) {
+                    isTargetMethod = true;
+                }
+            });
+            if (isTargetMethod) {
+                node.getChildren().forEach(child => {
+                    if (child.kind === SyntaxKind.SyntaxList) {
+                        child.getChildren().forEach(gChild => {
+                            if (gChild.kind === SyntaxKind.Parameter) {
+                                let paramName = '';
+                                gChild.getChildren().forEach(ggChild => {
+                                    if (ts.isIdentifier(ggChild)) {
+                                        paramName = ggChild.getText();
+                                    }
+                                });
+                                const paramTags = ts.getJSDocParameterTags(gChild as ParameterDeclaration);
+                                paramTags.forEach(paramTag => {
+                                    if (paramName && paramTag.comment) {
+                                        if (typeof paramTag.comment === 'string') {
+                                            result.push({name: paramName, description: paramTag.comment})
+                                        } else {
+                                            result.push({name: paramName, description: paramTag.comment.toString()})
+                                        }
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+        }
+        ts.forEachChild(node, visit);
+    };
+    ts.forEachChild(sourceFile, visit);
+    return result;
+  }
 
 
     /**
