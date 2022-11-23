@@ -7,7 +7,6 @@
     "build": "tsc",
     "prepare": "npm run build",
     "watch": "tsc -w",
-    "coverage": "nyc report --reporter=text-lcov | coveralls",
     "test": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc mocha -r ts-node/register test/**/*.ts"
   },
   "nyc": {

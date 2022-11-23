@@ -1,5 +1,4 @@
 [![npm version](https://badge.fury.io/js/cdk-apig-utility.svg)](https://badge.fury.io/js/cdk-apig-utility)
-[![Build Status](https://travis-ci.org/A-Kurimoto/cdk-apig-utility.svg?branch=master)](https://travis-ci.org/A-Kurimoto/cdk-apig-utility)
 [![Coverage Status](https://coveralls.io/repos/github/A-Kurimoto/cdk-apig-utility/badge.svg?branch=master)](https://coveralls.io/github/A-Kurimoto/cdk-apig-utility?branch=master)
 
 cdk-apig-utility
@@ -96,7 +95,7 @@ export interface SubIf {
 
 ```typescript
 import {CdkApigUtility} from 'cdk-apig-utility';
-import {ModelOptions} from '@aws-cdk/aws-apigateway';
+import {ModelOptions} from 'aws-cdk-lib/aws-apigateway';
 
 // You can also use getModelsFromDir method.
 const modelOptions: ModelOptions[] = new CdkApigUtility().getModelsFromFiles(['sample-if.ts', 'sub/sub-if.ts']);
