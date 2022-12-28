@@ -123,9 +123,9 @@ export class CdkApigUtility {
      *
      * @param dir Directory of class or interface entity sources. It also search sub-directory. This directory must include only entities.
      */
-    getModelsFromDir(dir: string): ModelOptions[] {~  
+    getModelsFromDir(dir: string): ModelOptions[] {
       return this.getResponseModelsFromDir(dir);
-    }
+  } 
   
     /**
      * @param srcPaths class or interface entity source's paths. If entity has some dependency, you must specify its path simultaneously.
@@ -241,7 +241,6 @@ export class CdkApigUtility {
             const refObj = results.find(result => result.modelName === value.ref);
             if (refObj) {
               value.properties = refObj.schema.properties;
-              value.required = ['TestProp']
               delete value.ref;
             }
           } else if (value.items && value.items.ref) {
