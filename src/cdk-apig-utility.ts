@@ -15,6 +15,7 @@ import * as fs from 'fs';
 export class CdkApigUtility {
     private apiId: string | undefined = undefined;
     public emitRequired: boolean = false;
+
     /**
      * Constructor
      * @param restApiId - The id of the rest api for which model will be built
@@ -114,12 +115,10 @@ export class CdkApigUtility {
             }
         }
         ts.forEachChild(node, visit);
-    };
-    ts.forEachChild(sourceFile, visit);
-    return result;
-  }
-
-
+      };
+      ts.forEachChild(sourceFile, visit);
+      return result;
+    }
     /**
      *
      * @param dir Directory of class or interface entity sources. It also search sub-directory. This directory must include only entities.
@@ -441,4 +440,3 @@ export class CdkApigUtility {
     }
   
   }
-x
