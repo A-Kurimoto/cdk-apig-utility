@@ -14,7 +14,7 @@ import * as fs from 'fs';
 
 export class CdkApigUtility {
     private apiId: string | undefined = undefined;
-
+    public emitRequired: boolean = false;
     /**
      * Constructor
      * @param restApiId - The id of the rest api for which model will be built
@@ -205,7 +205,7 @@ export class CdkApigUtility {
               properties: model.properties,
             },
           };
-          if (model.required.length) {
+          if (model.required.length && this.emitRequired) {
             modelOptions.schema.required = model.required;
           }
           results.push(modelOptions);
