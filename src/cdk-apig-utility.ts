@@ -412,8 +412,9 @@ export class CdkApigUtility {
       /*
       * If there is no description or description startsWith 'No description', remove the description property as it need not be emitted
       */
-      if (!description || description.startsWith('No description')) {
-        delete properties[propertyName]['description'];
+      if ((!description || description.startsWith('No description'))
+         && properties[propertyName]) {
+          delete properties[propertyName]['description'];
       }
     }
   
